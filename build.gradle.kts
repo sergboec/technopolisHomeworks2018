@@ -1,0 +1,7 @@
+plugins {
+    idea
+}
+
+repositories {
+    jcenter()
+}

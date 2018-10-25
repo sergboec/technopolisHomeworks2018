@@ -25,7 +25,7 @@ public class Main {
                 .mapToPair(e -> new Tuple2<String, Integer>((String) e , 1))
                 .reduceByKey((v1, v2) -> (int)v1 + (int)v2);
 
-        long uniqueAmonut = pairs.count();
+        long uniqueAmount = pairs.count();
 
         JavaPairRDD sorted = pairs
                 .mapToPair(e -> new Tuple2<Integer, String>(e._2, e._1))
@@ -40,9 +40,9 @@ public class Main {
             return ((long)c) + tuple._1;
         }, (a,b)-> ((long)a) + ((long)b));
 
-        System.out.println("Unique logins: " + uniqueAmonut);
+        System.out.println("Unique logins: " + uniqueAmount);
         System.out.println("Logins: " + loginsAmount);
-        System.out.println("Average: " + loginsAmount / uniqueAmonut);
+        System.out.println("Average: " + loginsAmount / uniqueAmount);
 
     }
 }

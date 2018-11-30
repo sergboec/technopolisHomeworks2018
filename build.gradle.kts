@@ -1,7 +1,0 @@
-plugins {
-    idea
-}
-
-repositories {
-    jcenter()
-}

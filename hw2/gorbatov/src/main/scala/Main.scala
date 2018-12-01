@@ -1,6 +1,7 @@
 import java.util
 
 import org.apache.spark.ml.Pipeline
+import org.apache.spark.ml.classification.LogisticRegression
 import org.apache.spark.ml.evaluation.RegressionEvaluator
 import org.apache.spark.ml.feature.VectorAssembler
 import org.apache.spark.ml.regression.GBTRegressor
@@ -29,6 +30,7 @@ object Main {
     val Array(trainingData, testData) = df.randomSplit(Array(0.8, 0.2))
 
     val labelCol = "label"
+    val featuresCol = "features"
 
     val types = new ListBuffer[String]
 
@@ -38,15 +40,23 @@ object Main {
       .setInputCols(types.toArray)
       .setOutputCol("features")
 
-    val gbt = new GBTRegressor()
+    val lr = new LogisticRegression()
       .setLabelCol(labelCol)
-      .setFeaturesCol("features")
+      .setFeaturesCol(featuresCol)
       .setPredictionCol("Predicted " + labelCol)
-      .setMaxIter(150)
+      .setMaxIter(10)
+      .setRegParam(0.3)
+      .setElasticNetParam(0.8)
+
+//    val gbt = new GBTRegressor()
+//      .setLabelCol(labelCol)
+//      .setFeaturesCol("features")
+//      .setPredictionCol("Predicted " + labelCol)
+//      .setMaxIter(150)
 
     val stages = Array(
       assembler,
-      gbt
+      lr
     )
 
     val pipeline = new Pipeline().setStages(stages)

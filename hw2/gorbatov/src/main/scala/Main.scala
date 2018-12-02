@@ -1,10 +1,11 @@
 import java.util
 
-import org.apache.spark.ml.Pipeline
-import org.apache.spark.ml.classification.LogisticRegression
+import org.apache.spark.ml.{Pipeline, PipelineModel}
+import org.apache.spark.ml.classification.{LogisticRegression, LogisticRegressionModel}
 import org.apache.spark.ml.evaluation.{BinaryClassificationEvaluator, RegressionEvaluator}
 import org.apache.spark.ml.feature.VectorAssembler
-import org.apache.spark.ml.regression.GBTRegressor
+import org.apache.spark.ml.regression.{GBTRegressor, LinearRegression, LinearRegressionModel}
+import org.apache.spark.ml.tuning.{CrossValidator, CrossValidatorModel, ParamGridBuilder}
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.types._
 
@@ -45,9 +46,7 @@ object Main {
       .setLabelCol(labelCol)
       .setFeaturesCol(featuresCol)
       .setPredictionCol("Predicted " + labelCol)
-      .setMaxIter(20)
-      .setRegParam(0.1)
-      .setElasticNetParam(0.1)
+      .setMaxIter(10)
 
     val stages = Array(
       assembler,
@@ -56,7 +55,20 @@ object Main {
 
     val pipeline = new Pipeline().setStages(stages)
 
-    val model = pipeline.fit(trainingData)
+    val paramGrid = new ParamGridBuilder().addGrid(lr.regParam, Array(0.1, 0.05, 0.01)).addGrid(lr.elasticNetParam, Array(0.0, 0.5, 1.0)).build()
+
+    val cv = new CrossValidator()
+      .setEstimator(pipeline)
+      .setEvaluator(new BinaryClassificationEvaluator)
+      .setEstimatorParamMaps(paramGrid)
+      .setNumFolds(2)
+
+    val pipelineModel = cv.fit(trainingData).bestModel
+
+    val model = pipelineModel.asInstanceOf[PipelineModel]
+
+//    model.write.overwrite().save("/home/gorbatov/LogisticRegressionModel")
+//    val model = PipelineModel.load("/home/gorbatov/LogisticRegressionModel")
 
     val predictions = model.transform(testData)
 
@@ -68,8 +80,9 @@ object Main {
     val precision = evaluator.evaluate(predictions)
 
     println("Is larger better: " + evaluator.isLargerBetter)
+    println("Precision: " + precision)
 
-    println(precision)
+    println("\n" + model.stages(1).explainParams() + "\n")
 
     spark.stop()
   }

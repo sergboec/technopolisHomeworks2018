@@ -2,7 +2,7 @@ import java.util
 
 import org.apache.spark.ml.Pipeline
 import org.apache.spark.ml.classification.LogisticRegression
-import org.apache.spark.ml.evaluation.RegressionEvaluator
+import org.apache.spark.ml.evaluation.{BinaryClassificationEvaluator, RegressionEvaluator}
 import org.apache.spark.ml.feature.VectorAssembler
 import org.apache.spark.ml.regression.GBTRegressor
 import org.apache.spark.sql.SparkSession
@@ -25,8 +25,6 @@ object Main {
       .csv("/dataset_simple.csv")
       .toDF()
 
-    df.show()
-
     val Array(trainingData, testData) = df.randomSplit(Array(0.8, 0.2))
 
     val labelCol = "label"
@@ -34,7 +32,10 @@ object Main {
 
     val types = new ListBuffer[String]
 
-    df.schema.fields.foreach(f => if (f.name != labelCol) types.+=(f.name))
+    df
+      .schema
+      .fields
+      .foreach(f => if (f.name != labelCol) types.+=(f.name))
 
     val assembler = new VectorAssembler()
       .setInputCols(types.toArray)
@@ -44,15 +45,9 @@ object Main {
       .setLabelCol(labelCol)
       .setFeaturesCol(featuresCol)
       .setPredictionCol("Predicted " + labelCol)
-      .setMaxIter(10)
-      .setRegParam(0.3)
-      .setElasticNetParam(0.8)
-
-//    val gbt = new GBTRegressor()
-//      .setLabelCol(labelCol)
-//      .setFeaturesCol("features")
-//      .setPredictionCol("Predicted " + labelCol)
-//      .setMaxIter(150)
+      .setMaxIter(20)
+      .setRegParam(0.1)
+      .setElasticNetParam(0.1)
 
     val stages = Array(
       assembler,
@@ -65,14 +60,16 @@ object Main {
 
     val predictions = model.transform(testData)
 
-    val evaluator = new RegressionEvaluator()
+    val evaluator = new BinaryClassificationEvaluator()
       .setLabelCol(labelCol)
-      .setPredictionCol("Predicted " + labelCol)
-      .setMetricName("rmse")
+      .setRawPredictionCol("Predicted " + labelCol)
+      .setMetricName("areaUnderROC")
 
-    val error = evaluator.evaluate(predictions)
+    val precision = evaluator.evaluate(predictions)
 
-    println(error)
+    println("Is larger better: " + evaluator.isLargerBetter)
+
+    println(precision)
 
     spark.stop()
   }

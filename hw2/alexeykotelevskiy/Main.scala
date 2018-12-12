@@ -2,7 +2,7 @@ package alexeykotelevskiy
 
 import org.apache.spark.ml.Pipeline
 import org.apache.spark.ml.classification.LogisticRegression
-import org.apache.spark.ml.evaluation.{BinaryClassificationEvaluator, RegressionEvaluator}
+import org.apache.spark.ml.evaluation.BinaryClassificationEvaluator
 import org.apache.spark.ml.feature.VectorAssembler
 import org.apache.spark.ml.tuning.{ParamGridBuilder, TrainValidationSplit}
 import org.apache.spark.sql.SparkSession

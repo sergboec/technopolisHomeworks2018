@@ -1,4 +1,6 @@
 include 'hw1'
+include 'hw2'
 include 'hw1:kylchik'
+include 'hw2:kylchik'
 findProject(':hw1:kylchik')?.name = 'kylchik'
-
+findProject(':hw2:kylchik')?.name = 'kylchik'

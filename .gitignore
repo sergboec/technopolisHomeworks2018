@@ -3,3 +3,6 @@
 **/build
 **/out
 .idea
+*.link
+*.csv
+*.iml

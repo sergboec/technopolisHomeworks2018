@@ -1,4 +1,0 @@
-include 'hw1'
-include 'hw1:kylchik'
-findProject(':hw1:kylchik')?.name = 'kylchik'
-
